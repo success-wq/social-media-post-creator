@@ -59,16 +59,31 @@ npm run dev
 # sign in with APP_PASSWORD from .env.local
 ```
 
-## Deploy to Vercel
+## Deploy to Render
 
-1. Push this directory to a Git repo (GitHub/GitLab/Bitbucket).
-2. In Vercel, click **Add New → Project**, import the repo.
-3. Framework preset: **Next.js** (auto-detected).
-4. Add the six environment variables listed above under **Environment Variables**.
-5. Click **Deploy**. First deploy takes ~1 minute.
-6. Visit your deployment URL, sign in with `APP_PASSWORD`.
+The repo includes a `render.yaml` blueprint that pre-configures everything except the secret env var values.
 
-To rotate the password, change `APP_PASSWORD` in Vercel and redeploy (or trigger a redeploy from the dashboard). Existing sessions stay valid until they expire (7 days); change `AUTH_SECRET` instead if you want to invalidate them all immediately.
+1. Push this directory to a Git repo (already done if you're following the setup).
+2. Go to **https://dashboard.render.com/blueprints** and click **New Blueprint Instance**.
+3. Connect your GitHub account (if not already connected) and select the `social-media-post-creator` repo.
+4. Render reads `render.yaml` and shows the service it will create. Click **Apply**.
+5. On the next screen, fill in the **secret** environment variables:
+   - `APP_PASSWORD` — what users type on `/login`
+   - `AUTH_SECRET` — `openssl rand -hex 32`
+   - `SHEETS_WEBAPP_URL` — your Google Apps Script `/exec` URL
+   - `N8N_TEXT_WEBHOOK`, `N8N_IMAGE_WEBHOOK`, `N8N_PUBLISH_WEBHOOK` — your three n8n webhook URLs
+6. Click **Create New Resources**. First build takes ~3–5 minutes.
+7. Once deployed, Render gives you a `*.onrender.com` URL. Visit it; you should see `/login`.
+
+To rotate the password, change `APP_PASSWORD` in **Environment → Edit** and the service auto-redeploys. Existing sessions stay valid until they expire (7 days). Change `AUTH_SECRET` instead if you want to invalidate them all immediately.
+
+### Plan notes
+
+`render.yaml` sets `plan: starter` ($7/mo). This keeps the instance always-on. If you want the free tier instead, change `plan: starter` → `plan: free` and redeploy — but be aware the free tier spins down after 15 min of inactivity, causing a ~30s cold start on the next request. Free tier is fine for occasional testing, painful for daily use.
+
+### Long-running requests
+
+The n8n image-generation request can take 60–100s. Render's web services have no fixed request timeout, so this works, but the connection stays open the whole time. If you ever see truncated responses or `504` errors from Render's proxy, the right fix is to switch to async polling (n8n returns immediately with a job id; UI polls a status endpoint).
 
 ## How the auth flow works
 
