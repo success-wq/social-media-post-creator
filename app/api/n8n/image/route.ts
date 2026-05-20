@@ -3,7 +3,7 @@ import { proxyJsonPost } from "@/lib/proxy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   return proxyJsonPost(req, process.env.N8N_IMAGE_WEBHOOK);
