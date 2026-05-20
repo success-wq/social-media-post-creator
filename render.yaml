@@ -2,7 +2,7 @@ services:
   - type: web
     name: social-media-post-creator
     runtime: node
-    plan: starter
+    plan: free
     region: oregon
     branch: main
     buildCommand: npm ci && npm run build
